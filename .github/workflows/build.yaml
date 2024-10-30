@@ -50,7 +50,7 @@ jobs:
           GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          gcloud container clusters get-credentials standard --zone=us-central1
+          gcloud container clusters get-credentials my-cluster --zone=us-central1-a
           sed -i "s|GOOGLE_PROJECT|$GOOGLE_PROJECT|g" resources.yaml
           sed -i "s|IMAGE_TAG|$IMAGE_TAG|g" resources.yaml
           kubectl apply -f resources.yaml

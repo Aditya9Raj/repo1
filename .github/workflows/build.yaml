@@ -1,0 +1,62 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Check target directory  
+        run: ls -al target
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GOOGLE_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+
+
+      - name: Build and push Docker image with unique tag
+        env:
+          GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+          docker build -t us-central1-docker.pkg.dev/cme-task1/aditya/mine:$IMAGE_TAG .
+          docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT/aditya/mine:$IMAGE_TAG
+
+      - name: Deploy to GKE
+        env:
+          GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          gcloud container clusters get-credentials standard --zone=us-central1
+          sed -i "s|GOOGLE_PROJECT|$GOOGLE_PROJECT|g" resources.yaml
+          sed -i "s|IMAGE_TAG|$IMAGE_TAG|g" resources.yaml
+          kubectl apply -f resources.yaml
+
+      - name: Get Service External IP
+        run: |
+          echo "Waiting for External IP..."
+          sleep 120  # Wait a bit for the LoadBalancer IP to be assigned
+          kubectl get svc mine-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'

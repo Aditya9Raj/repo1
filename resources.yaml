@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mine
+  template:
+    metadata:
+      labels:
+        app: mine
+    spec:
+      containers:
+      - name: mine-container
+        image: us-central1-docker.pkg.dev/GOOGLE_PROJECT/aditya/mine:IMAGE_TAG
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mine-service
+spec:
+  selector:
+    app: mine
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 80           # External por
+    targetPort: 8080   # Port your application listens on

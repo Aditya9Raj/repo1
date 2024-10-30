@@ -42,7 +42,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
-          docker build -t us-central1-docker.pkg.dev/cme-task1/aditya/mine:$IMAGE_TAG .
+          docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT/aditya/mine:$IMAGE_TAG .
           docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT/aditya/mine:$IMAGE_TAG
 
       - name: Deploy to GKE

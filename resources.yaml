@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: mine-container
-        image: us-central1-docker.pkg.dev/GOOGLE_PROJECT/aditya/mine:IMAGE_TAG
+        image: us-central1-docker.pkg.dev/cme-task1-442308/aditya/mine:IMAGE_TAG
         ports:
         - containerPort: 8080
 

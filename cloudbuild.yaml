@@ -3,6 +3,9 @@ steps:
 - name: 'gcr.io/cloud-builders/mvn'
   entrypoint: 'mvn'
   args: ['clean', 'package', '-DskipTests']
+  options:
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+
 
 # Step 2: Verify target directory contents
 - name: 'ubuntu'

@@ -1,0 +1,60 @@
+steps:
+# Step 1: Set up Maven
+- name: 'gcr.io/cloud-builders/mvn'
+  entrypoint: 'mvn'
+  args: ['clean', 'package', '-DskipTests']
+
+# Step 2: Verify target directory contents
+- name: 'ubuntu'
+  entrypoint: 'bash'
+  args: ['-c', 'ls -al target']
+
+# Step 3: Build Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - '-t'
+    - 'us-central1-docker.pkg.dev/cme-task1-442308/aditya/mine:$COMMIT_SHA'
+    - '.'
+
+# Step 4: Push Docker image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'push'
+    - 'us-central1-docker.pkg.dev/cme-task1-442308/aditya/mine:$COMMIT_SHA'
+
+# Step 5: Deploy to GKE
+- name: 'gcr.io/cloud-builders/kubectl'
+  args:
+    - 'apply'
+    - '-f'
+    - 'resources.yaml'
+  env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=my-cluster'
+
+# Step 6: Update Kubernetes configuration
+- name: 'ubuntu'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      sed -i "s|GOOGLE_PROJECT|cme-task1-442308|g" resources.yaml
+      sed -i "s|IMAGE_TAG|$COMMIT_SHA|g" resources.yaml
+
+# Step 7: Wait for external IP
+- name: 'ubuntu'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      echo "Waiting for External IP..."
+      sleep 120
+      kubectl get svc mine-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+
+# Substitutions for variables
+substitutions:
+  _PROJECT_ID: 'cme-task1-442308'
+  _COMMIT_SHA: '${SHORT_SHA}'
+
+timeout: '1200s'

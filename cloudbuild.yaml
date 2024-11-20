@@ -4,7 +4,8 @@ steps:
   entrypoint: 'mvn'
   args: ['clean', 'package', '-DskipTests']
   options:
-  logsBucket: gs://bucket-cme
+  logging: CLOUD_LOGGING_ONLY
+
 
 
 # Step 2: Verify target directory contents

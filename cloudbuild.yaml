@@ -4,7 +4,7 @@ steps:
   entrypoint: 'mvn'
   args: ['clean', 'package', '-DskipTests']
   options:
-  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+  logsBucket: gs://bucket-cme
 
 
 # Step 2: Verify target directory contents
